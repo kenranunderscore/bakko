@@ -11,3 +11,37 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+def gitDescribe = 'git describe --long'.execute([], project.rootDir).text.trim()
+def gitVersion = gitDescribe.substring(0, gitDescribe.length() - 9).replace('-', '.')
+
+jar.archiveName = "${group}.${name}_${gitVersion}.jar"
+
+task createPropertiesFile {
+    doLast {
+        def classesDir = sourceSets.main.output.getClassesDirs().first()
+        def targetFile = file("${classesDir}/kenran/${project.name}.properties")
+        if (!targetFile.parentFile.exists()) {
+            targetFile.parentFile.mkdirs()
+        }
+
+        def writer = targetFile.newWriter()
+        writer << "robot.description=Nothing interesting yet\n"
+        writer << "robocode.version=1.9\n"
+        writer << "robot.java.source.included=true\n"
+        writer << "robot.version=${gitVersion}\n"
+        writer << "robot.author.name=kenran\n"
+        writer << "robot.classname=kenran.${project.name}\n"
+        writer << "robot.name=${project.name}\n"
+        writer.flush()
+        writer.close()
+    }
+}
+
+task copyJarToRobocodeDir(type: Copy) {
+    from "build/libs/${jar.archiveName}"
+    into "d:/robocode/robots"
+}
+
+jar.dependsOn createPropertiesFile
+build.finalizedBy copyJarToRobocodeDir
