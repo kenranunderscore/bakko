@@ -44,7 +44,6 @@ public class Bakko extends AdvancedRobot {
         for (int i = 0; i < RECENT_PATTERN_LENGTH; i++) {
             _recent.add(0.0, 8.0);
         }
-        turnRadarRightRadians(Double.POSITIVE_INFINITY);
         while (true) {
             execute();
         }

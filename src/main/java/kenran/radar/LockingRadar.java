@@ -11,6 +11,7 @@ public class LockingRadar {
     public LockingRadar(Bakko bot, double lockMultiplier) {
         _bot = bot;
         _lockMultiplier = lockMultiplier;
+        _bot.setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
