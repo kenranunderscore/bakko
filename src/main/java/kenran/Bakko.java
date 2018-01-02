@@ -1,5 +1,6 @@
 package kenran;
 
+import kenran.movement.MovementDeque;
 import kenran.radar.LockingRadar;
 import kenran.util.MovementState;
 import kenran.util.Wave;
@@ -24,7 +25,7 @@ public class Bakko extends AdvancedRobot {
 
     private final Point2D.Double _enemyPosition = new Point2D.Double();
     private final Point2D.Double _position = new Point2D.Double();
-    private final MovementDeque _recent = new MovementDeque();
+    private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
     private final ArrayList<Integer> _surfDirections = new ArrayList<>();
     private final ArrayList<Double> _surfAbsBearings = new ArrayList<>();
@@ -41,7 +42,7 @@ public class Bakko extends AdvancedRobot {
         if (_fieldRect == null) {
             _fieldRect = new Rectangle2D.Double(18.0, 18.0, getBattleFieldWidth() - 36.0, getBattleFieldHeight() - 36.0);
         }
-        for (int i = 0; i < RECENT_PATTERN_LENGTH; i++) {
+        for (int i = 0; i < _recent.getMaxSize(); i++) {
             _recent.add(0.0, 8.0);
         }
         while (true) {
@@ -258,7 +259,7 @@ public class Bakko extends AdvancedRobot {
 
     private double compare(MovementDeque d1, MovementDeque d2) {
         double distance = 0.0;
-        for (int i = 0; i < RECENT_PATTERN_LENGTH; i++) {
+        for (int i = 0; i < d1.getMaxSize(); i++) {
             MovementState ms1 = d1.get(i);
             MovementState ms2 = d2.get(i);
             double turnRateDifference = ms1.turnRate - ms2.turnRate;
@@ -269,13 +270,13 @@ public class Bakko extends AdvancedRobot {
     }
 
     private int lastIndexOfMatchingSeries() {
-        MovementDeque iterator = new MovementDeque();
+        MovementDeque iterator = new MovementDeque(RECENT_PATTERN_LENGTH);
         for (int i = 0; i < 12; i++) {
             iterator.add(_record.get(i));
         }
         double minimumDistance = compare(iterator, _recent);
-        int indexOfMinimumDistance = RECENT_PATTERN_LENGTH - 1;
-        int i = RECENT_PATTERN_LENGTH;
+        int indexOfMinimumDistance = _recent.getMaxSize() - 1;
+        int i = _recent.getMaxSize();
         do {
             MovementState ms = _record.get(i);
             iterator.add(ms.turnRate, ms.velocity);
@@ -304,25 +305,5 @@ public class Bakko extends AdvancedRobot {
             turns += 1.0;
         }
         return predictedPosition;
-    }
-
-    static class MovementDeque {
-        private final MovementState[] msArray = new MovementState[RECENT_PATTERN_LENGTH];
-
-        void add(double turnRate, double velocity) {
-            System.arraycopy(msArray, 1, msArray, 0, RECENT_PATTERN_LENGTH - 1);
-            msArray[11] = new MovementState(turnRate, velocity);
-        }
-
-        void add(MovementState ms) {
-            add(ms.turnRate, ms.velocity);
-        }
-
-        MovementState get(int index) {
-            if (index < 0 || index >= RECENT_PATTERN_LENGTH) {
-                throw new IndexOutOfBoundsException();
-            }
-            return msArray[index];
-        }
     }
 }
