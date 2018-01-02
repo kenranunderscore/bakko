@@ -1,5 +1,6 @@
 package kenran;
 
+import kenran.radar.LockingRadar;
 import kenran.util.MovementState;
 import kenran.util.Wave;
 import robocode.*;
@@ -16,24 +17,27 @@ public class Bakko extends AdvancedRobot {
     private static final int RECENT_PATTERN_LENGTH = 12;
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
+    private static final double RADAR_LOCK_MULTIPLIER = 2.1;
     private static final ArrayList<MovementState> _record = new ArrayList<>(3000);
     private static final double[] _surfStats = new double[BINS];
     private static Rectangle2D.Double _fieldRect = null;
 
     private final Point2D.Double _enemyPosition = new Point2D.Double();
     private final Point2D.Double _position = new Point2D.Double();
-    private double _enemyHeading = 0.0;
-    private double _enemyEnergy = 100.0;
     private final MovementDeque _recent = new MovementDeque();
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
     private final ArrayList<Integer> _surfDirections = new ArrayList<>();
     private final ArrayList<Double> _surfAbsBearings = new ArrayList<>();
+    private double _enemyHeading = 0.0;
+    private double _enemyEnergy = 100.0;
+    private LockingRadar _radar;
 
     @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
+        _radar = new LockingRadar(this, RADAR_LOCK_MULTIPLIER);
         if (_fieldRect == null) {
             _fieldRect = new Rectangle2D.Double(18.0, 18.0, getBattleFieldWidth() - 36.0, getBattleFieldHeight() - 36.0);
         }
@@ -103,8 +107,7 @@ public class Bakko extends AdvancedRobot {
             setTurnGunRightRadians(normalRelativeAngle(theta - getGunHeadingRadians()));
         }
         setFire(power);
-        double radarAngle = enemyBearing - getRadarHeadingRadians();
-        setTurnRadarRightRadians(2.1D * normalRelativeAngle(radarAngle));
+        _radar.onScannedRobot(e);
     }
 
     private void updateWaves() {
