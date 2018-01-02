@@ -46,27 +46,25 @@ public class PatternMatcher {
         double power = bulletPower();
         if (_bot.getRoundNum() != 0) {
             Point2D.Double predictedPosition = predictPosition(power);
-            double d5 = absoluteBearing(_bot.getPosition(), predictedPosition);
-            _bot.setTurnGunRightRadians(normalRelativeAngle(d5 - _bot.getGunHeadingRadians()));
+            double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
+            _bot.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bot.getGunHeadingRadians()));
         } else {
             double bulletVelocity = bulletVelocity(power);
             double turns = 0.0;
-            double enemyX = _bot.getEnemyPosition().getX();
-            double enemyY = _bot.getEnemyPosition().getY();
+            Point2D.Double predictedPosition = (Point2D.Double)_bot.getEnemyPosition().clone();
             double heading = _enemyHeading;
             double battleFieldWidth = _bot.getBattleFieldWidth();
             double battleFieldHeight = _bot.getBattleFieldHeight();
-            while (++turns * bulletVelocity < _bot.getPosition().distance(enemyX, enemyY)) {
-                enemyX += Math.sin(heading) * e.getVelocity();
-                enemyY += Math.cos(heading) * e.getVelocity();
+            while (++turns * bulletVelocity < _bot.getPosition().distance(predictedPosition)) {
+                predictedPosition.x += Math.sin(heading) * e.getVelocity();
+                predictedPosition.y += Math.cos(heading) * e.getVelocity();
                 heading += _deltaHeading;
-                if (enemyX < 17.9 || enemyY < 17.9 || enemyX > battleFieldWidth - 17.9 || enemyY > battleFieldHeight - 17.9) {
-                    enemyX = Math.min(Math.max(18.0, enemyX), battleFieldWidth - 18.0);
-                    enemyY = Math.min(Math.max(18.0, enemyY), battleFieldHeight - 18.0);
+                if (predictedPosition.getX() < 17.9 || predictedPosition.getY() < 17.9 || predictedPosition.getX() > battleFieldWidth - 17.9 || predictedPosition.getY() > battleFieldHeight - 17.9) {
+                    predictedPosition.x = Math.min(Math.max(18.0, predictedPosition.x), battleFieldWidth - 18.0);
+                    predictedPosition.y = Math.min(Math.max(18.0, predictedPosition.y), battleFieldHeight - 18.0);
                 }
             }
-
-            double theta = normalAbsoluteAngle(absoluteBearing(_bot.getPosition(), new Point2D.Double(enemyX, enemyY)));
+            double theta = normalAbsoluteAngle(absoluteBearing(_bot.getPosition(), predictedPosition));
             _bot.setTurnGunRightRadians(normalRelativeAngle(theta - _bot.getGunHeadingRadians()));
         }
         //TODO: gun heat?
@@ -111,7 +109,7 @@ public class PatternMatcher {
 
     private int lastIndexOfMatchingSeries() {
         MovementDeque iterator = new MovementDeque(RECENT_PATTERN_LENGTH);
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < iterator.getMaxSize(); i++) {
             iterator.add(_record.get(i));
         }
         double minimumDistance = compare(iterator, _recent);
@@ -141,7 +139,7 @@ public class PatternMatcher {
             predictedPosition.x += Math.sin(heading) * ms.velocity;
             predictedPosition.y += Math.cos(heading) * ms.velocity;
             heading += ms.turnRate;
-            travelTime = (int)bulletTravelTime(_bot.getPosition().distance(predictedPosition), power);
+            travelTime = bulletTravelTime(_bot.getPosition().distance(predictedPosition), power);
             turns += 1.0;
         }
         return predictedPosition;
