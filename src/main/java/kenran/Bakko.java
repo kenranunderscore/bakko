@@ -4,7 +4,6 @@ import kenran.movement.MovementDeque;
 import kenran.movement.WaveSurfingMovement;
 import kenran.radar.LockingRadar;
 import kenran.util.MovementState;
-import kenran.util.Wave;
 import robocode.*;
 
 import java.awt.geom.Point2D;
@@ -55,6 +54,7 @@ public class Bakko extends AdvancedRobot {
         _enemyHeading = e.getHeadingRadians();
         double enemyBearing = getHeadingRadians() + e.getBearingRadians();
         _enemyPosition.setLocation(project(_position, enemyBearing, e.getDistance()));
+        _enemyEnergy = e.getEnergy();
         if (_enemyEnergy < 0.1) {
             stop();
             setTurnGunRightRadians(enemyBearing);
