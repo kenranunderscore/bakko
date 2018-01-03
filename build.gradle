@@ -49,6 +49,6 @@ task copyJarToRoborunnerDir(type: Copy) {
     into "d:/roborunnergui/robots"
 }
 
-compileJava.dependsOn createPropertiesFile
+build.dependsOn createPropertiesFile
 build.finalizedBy copyJarToRobocodeDir
 build.finalizedBy copyJarToRoborunnerDir
