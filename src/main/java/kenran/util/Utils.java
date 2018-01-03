@@ -1,6 +1,8 @@
 package kenran.util;
 
 import robocode.AdvancedRobot;
+import robocode.Rules;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -8,11 +10,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 
 public class Utils {
     public static double bulletTravelTime(double distance, double bulletPower) {
-        return distance / bulletVelocity(bulletPower);
-    }
-
-    public static double bulletVelocity(double bulletPower) {
-        return 20.0 - 3.0 * bulletPower;
+        return distance / Rules.getBulletSpeed(bulletPower);
     }
 
     public static double wallSmoothing(

@@ -56,6 +56,11 @@ public class Bakko extends AdvancedRobot {
         _movement.onBulletHitBullet(e);
     }
 
+    @Override
+    public void onBulletHit(BulletHitEvent e) {
+        _movement.onBulletHit(e);
+    }
+
     public Point2D.Double getPosition() {
         return _position;
     }

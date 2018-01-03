@@ -2,10 +2,7 @@ package kenran.movement;
 
 import kenran.Bakko;
 import kenran.util.Wave;
-import robocode.Bullet;
-import robocode.BulletHitBulletEvent;
-import robocode.HitByBulletEvent;
-import robocode.ScannedRobotEvent;
+import robocode.*;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -39,11 +36,12 @@ public class WaveSurfingMovement {
         _surfAbsBearings.add(0, enemyBearing + Math.PI);
         double deltaEnergy = _enemyEnergy - e.getEnergy();
         _enemyEnergy = e.getEnergy();
-        if (deltaEnergy < 3.01 && deltaEnergy > 0.09 && _surfDirections.size() > 2) {
+        if (deltaEnergy <= Rules.MAX_BULLET_POWER && deltaEnergy >= Rules.MIN_BULLET_POWER && _surfDirections.size() > 2) {
+            double bulletVelocity = Rules.getBulletSpeed(deltaEnergy);
             Wave w = new Wave();
             w.fireTime = _bot.getTime() - 1;
-            w.bulletVelocity = bulletVelocity(deltaEnergy);
-            w.traveledDistance = bulletVelocity(deltaEnergy);
+            w.bulletVelocity = bulletVelocity;
+            w.traveledDistance = bulletVelocity;
             w.direction = _surfDirections.get(2);
             w.angle = _surfAbsBearings.get(2);
             w.firePosition = (Point2D.Double)_bot.getEnemyPosition().clone();
@@ -54,15 +52,16 @@ public class WaveSurfingMovement {
     }
 
     public void onHitByBullet(HitByBulletEvent e) {
+        Bullet bullet = e.getBullet();
+        _enemyEnergy += 3.0 * bullet.getPower();
         if (_enemyWaves.isEmpty()) {
             return;
         }
 
-        Bullet bullet = e.getBullet();
         Point2D.Double hitPosition = new Point2D.Double(bullet.getX(), bullet.getY());
         Wave hitWave = null;
         for (Wave wave : _enemyWaves) {
-            if ((Math.abs(wave.traveledDistance - _bot.getPosition().distance(wave.firePosition)) < 50.0D) && (Math.round(bulletVelocity(e.getBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
+            if ((Math.abs(wave.traveledDistance - _bot.getPosition().distance(wave.firePosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
                 hitWave = wave;
                 break;
             }
@@ -81,7 +80,7 @@ public class WaveSurfingMovement {
         Point2D.Double hitPosition = new Point2D.Double(e.getBullet().getX(), e.getBullet().getY());
         Wave hitWave = null;
         for (Wave wave : _enemyWaves) {
-            if ((Math.abs(wave.traveledDistance - wave.firePosition.distance(hitPosition)) < 50.0D) && (Math.round(bulletVelocity(e.getHitBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
+            if ((Math.abs(wave.traveledDistance - wave.firePosition.distance(hitPosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getHitBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
                 hitWave = wave;
                 break;
             }
@@ -92,6 +91,9 @@ public class WaveSurfingMovement {
         }
     }
 
+    public void onBulletHit(BulletHitEvent e) {
+        _enemyEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
+    }
 
     private void updateWaves() {
         for (int i = 0; i < _enemyWaves.size(); i++) {
@@ -153,7 +155,7 @@ public class WaveSurfingMovement {
             double maxTurnRate = Math.PI / 720.0 * (40.0 - 3.0 * Math.abs(velocity));
             heading = normalRelativeAngle(heading + limit(-maxTurnRate, goAngle, maxTurnRate));
             velocity += (velocity * goDirection < 0.0 ? 2.0 * goDirection : goDirection);
-            velocity = limit(-8.0, velocity, 8.0);
+            velocity = limit(-Rules.MAX_VELOCITY, velocity, Rules.MAX_VELOCITY);
             impactPosition = project(impactPosition, heading, velocity);
             turnCount++;
             if (impactPosition.distance(wave.firePosition) < wave.traveledDistance + turnCount * wave.bulletVelocity + wave.bulletVelocity) {

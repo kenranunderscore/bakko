@@ -3,6 +3,7 @@ package kenran.gun;
 import kenran.Bakko;
 import kenran.movement.MovementDeque;
 import kenran.util.MovementState;
+import robocode.Rules;
 import robocode.ScannedRobotEvent;
 
 import java.awt.geom.Point2D;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 
 import static kenran.util.Utils.absoluteBearing;
 import static kenran.util.Utils.bulletTravelTime;
-import static kenran.util.Utils.bulletVelocity;
 import static robocode.util.Utils.normalAbsoluteAngle;
 import static robocode.util.Utils.normalRelativeAngle;
 
@@ -26,7 +26,7 @@ public class PatternMatcher {
     public PatternMatcher(Bakko bot) {
         _bot = bot;
         for (int i = 0; i < _recent.getMaxSize(); i++) {
-            _recent.add(0.0, 8.0);
+            _recent.add(0.0, Rules.MAX_VELOCITY);
         }
     }
 
@@ -49,7 +49,7 @@ public class PatternMatcher {
             double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
             _bot.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bot.getGunHeadingRadians()));
         } else {
-            double bulletVelocity = bulletVelocity(power);
+            double bulletVelocity = Rules.getBulletSpeed(power);
             double turns = 0.0;
             Point2D.Double predictedPosition = (Point2D.Double)_bot.getEnemyPosition().clone();
             double heading = _enemyHeading;
