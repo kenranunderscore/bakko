@@ -95,30 +95,18 @@ public class PatternMatcher {
         }
     }
 
-    private double compare(MovementDeque d1, MovementDeque d2) {
-        double distance = 0.0;
-        for (int i = 0; i < d1.getMaxSize(); i++) {
-            MovementState ms1 = d1.get(i);
-            MovementState ms2 = d2.get(i);
-            double turnRateDifference = ms1.turnRate - ms2.turnRate;
-            double velocityDifference = ms1.velocity - ms2.velocity;
-            distance += Math.abs(turnRateDifference) + Math.abs(velocityDifference);
-        }
-        return distance;
-    }
-
     private int lastIndexOfMatchingSeries() {
         MovementDeque iterator = new MovementDeque(RECENT_PATTERN_LENGTH);
         for (int i = 0; i < iterator.getMaxSize(); i++) {
             iterator.add(_record.get(i));
         }
-        double minimumDistance = compare(iterator, _recent);
+        double minimumDistance = iterator.compare(_recent);
         int indexOfMinimumDistance = _recent.getMaxSize() - 1;
         int i = _recent.getMaxSize();
         do {
             MovementState ms = _record.get(i);
             iterator.add(ms.turnRate, ms.velocity);
-            double distance = compare(iterator, _recent);
+            double distance = iterator.compare(_recent);
             if (distance < minimumDistance) {
                 minimumDistance = distance;
                 indexOfMinimumDistance = i;

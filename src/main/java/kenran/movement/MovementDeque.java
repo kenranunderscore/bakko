@@ -20,11 +20,12 @@ public class MovementDeque {
         add(ms.turnRate, ms.velocity);
     }
 
-    public MovementState get(int index) {
-        if (index < 0 || index >= _maxSize) {
-            throw new IndexOutOfBoundsException();
+    public double compare(MovementDeque other) {
+        double distance = 0.0;
+        for (int i = 0; i < getMaxSize(); i++) {
+            distance += _data[i].compare(other._data[i]);
         }
-        return _data[index];
+        return distance;
     }
 
     public int getMaxSize() {
