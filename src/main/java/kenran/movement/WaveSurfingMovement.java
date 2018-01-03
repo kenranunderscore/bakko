@@ -18,7 +18,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class WaveSurfingMovement {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
-    private static final double HALF_PI = Math.PI / 2.0;
+    private static final double DISTANCE_KEEPING_ANGLE = Math.PI / 2.0 - 0.2;
     private static final double[] _surfStats = new double[BINS];
 
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
@@ -137,7 +137,7 @@ public class WaveSurfingMovement {
         int turnCount = 0;
         boolean intercepted = false;
         do {
-            double unsmoothedAngle = absoluteBearing(wave.firePosition, impactPosition) + direction * HALF_PI;
+            double unsmoothedAngle = absoluteBearing(wave.firePosition, impactPosition) + direction * DISTANCE_KEEPING_ANGLE;
             double goAngle = wallSmoothing(
                     _bot.getBattleField(),
                     impactPosition,
@@ -175,9 +175,9 @@ public class WaveSurfingMovement {
         double dangerRight = checkDanger(surfWave, 1);
         double angle = absoluteBearing(surfWave.firePosition, _bot.getPosition());
         if (dangerLeft < dangerRight) {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - HALF_PI, -1, WALL_STICK);
+            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - DISTANCE_KEEPING_ANGLE, -1, WALL_STICK);
         } else {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + HALF_PI, 1, WALL_STICK);
+            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + DISTANCE_KEEPING_ANGLE, 1, WALL_STICK);
         }
         setBackAsFront(_bot, angle);
     }
