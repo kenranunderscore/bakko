@@ -1,17 +1,25 @@
 package kenran.util;
 
 public class MovementState {
-    public final double turnRate;
-    public final double velocity;
+    private final double _turnRate;
+    private final double _velocity;
 
     public MovementState(double turnRate, double velocity) {
-        this.turnRate = turnRate;
-        this.velocity = velocity;
+        this._turnRate = turnRate;
+        this._velocity = velocity;
     }
 
     public double compare(MovementState other) {
-        double turnRateDifference = this.turnRate - other.turnRate;
-        double velocityDifference = this.velocity - other.velocity;
+        double turnRateDifference = this._turnRate - other._turnRate;
+        double velocityDifference = this._velocity - other._velocity;
         return Math.abs(turnRateDifference) + Math.abs(velocityDifference);
+    }
+
+    public double getTurnRate() {
+        return _turnRate;
+    }
+
+    public double getVelocity() {
+        return _velocity;
     }
 }

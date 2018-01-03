@@ -11,13 +11,9 @@ public class MovementDeque {
         _data = new MovementState[_maxSize];
     }
 
-    public void add(double turnRate, double velocity) {
-        System.arraycopy(_data, 1, _data, 0, _maxSize - 1);
-        _data[_maxSize - 1] = new MovementState(turnRate, velocity);
-    }
-
     public void add(MovementState ms) {
-        add(ms.turnRate, ms.velocity);
+        System.arraycopy(_data, 1, _data, 0, _maxSize - 1);
+        _data[_maxSize - 1] = ms;
     }
 
     public double compare(MovementDeque other) {

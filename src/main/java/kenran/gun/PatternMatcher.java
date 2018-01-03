@@ -26,7 +26,7 @@ public class PatternMatcher {
     public PatternMatcher(Bakko bot) {
         _bot = bot;
         for (int i = 0; i < _recent.getMaxSize(); i++) {
-            _recent.add(0.0, Rules.MAX_VELOCITY);
+            _recent.add(new MovementState(0.0, Rules.MAX_VELOCITY));
         }
     }
 
@@ -105,7 +105,7 @@ public class PatternMatcher {
         int i = _recent.getMaxSize();
         do {
             MovementState ms = _record.get(i);
-            iterator.add(ms.turnRate, ms.velocity);
+            iterator.add(ms);
             double distance = iterator.compare(_recent);
             if (distance < minimumDistance) {
                 minimumDistance = distance;
@@ -124,9 +124,9 @@ public class PatternMatcher {
         double turns = 0.0;
         for (int j = i + 1; j < _record.size() && turns <= travelTime; j++) {
             MovementState ms = _record.get(j);
-            predictedPosition.x += Math.sin(heading) * ms.velocity;
-            predictedPosition.y += Math.cos(heading) * ms.velocity;
-            heading += ms.turnRate;
+            predictedPosition.x += Math.sin(heading) * ms.getVelocity();
+            predictedPosition.y += Math.cos(heading) * ms.getVelocity();
+            heading += ms.getTurnRate();
             travelTime = bulletTravelTime(_bot.getPosition().distance(predictedPosition), power);
             turns += 1.0;
         }
