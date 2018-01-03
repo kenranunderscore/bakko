@@ -18,6 +18,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class WaveSurfingMovement {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
+    private static final double HALF_PI = Math.PI / 2.0;
     private static final double[] _surfStats = new double[BINS];
 
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
@@ -133,26 +134,32 @@ public class WaveSurfingMovement {
         Point2D.Double impactPosition = (Point2D.Double)_bot.getPosition().clone();
         double velocity = _bot.getVelocity();
         double heading = _bot.getHeadingRadians();
-        int i = 0;
-        int j = 0;
+        int turnCount = 0;
+        boolean intercepted = false;
         do {
-            double d4 = wallSmoothing(_bot.getBattleField(), impactPosition, absoluteBearing(wave.firePosition, impactPosition) + direction * 1.5707963267948966D, direction, WALL_STICK) - heading;
-            double d5 = 1.0D;
-            if (Math.cos(d4) < 0.0D) {
-                d4 += Math.PI;
-                d5 = -1.0D;
+            double unsmoothedAngle = absoluteBearing(wave.firePosition, impactPosition) + direction * HALF_PI;
+            double goAngle = wallSmoothing(
+                    _bot.getBattleField(),
+                    impactPosition,
+                    unsmoothedAngle,
+                    direction,
+                    WALL_STICK) - heading;
+            double goDirection = 1.0;
+            if (Math.cos(goAngle) < 0.0) {
+                goAngle += Math.PI;
+                goDirection = -1.0;
             }
-            d4 = normalRelativeAngle(d4);
-            double d3 = 0.004363323129985824D * (40.0D - 3.0D * Math.abs(velocity));
-            heading = normalRelativeAngle(heading + limit(-d3, d4, d3));
-            velocity += (velocity * d5 < 0.0D ? 2.0D * d5 : d5);
-            velocity = limit(-8.0D, velocity, 8.0D);
+            goAngle = normalRelativeAngle(goAngle);
+            double maxTurnRate = Math.PI / 720.0 * (40.0 - 3.0 * Math.abs(velocity));
+            heading = normalRelativeAngle(heading + limit(-maxTurnRate, goAngle, maxTurnRate));
+            velocity += (velocity * goDirection < 0.0 ? 2.0 * goDirection : goDirection);
+            velocity = limit(-8.0, velocity, 8.0);
             impactPosition = project(impactPosition, heading, velocity);
-            i++;
-            if (impactPosition.distance(wave.firePosition) < wave.traveledDistance + i * wave.bulletVelocity + wave.bulletVelocity) {
-                j = 1;
+            turnCount++;
+            if (impactPosition.distance(wave.firePosition) < wave.traveledDistance + turnCount * wave.bulletVelocity + wave.bulletVelocity) {
+                intercepted = true;
             }
-        } while (j == 0 && (i < 500));
+        } while (!intercepted && turnCount < 500);
         return impactPosition;
     }
 
@@ -168,9 +175,9 @@ public class WaveSurfingMovement {
         double dangerRight = checkDanger(surfWave, 1);
         double angle = absoluteBearing(surfWave.firePosition, _bot.getPosition());
         if (dangerLeft < dangerRight) {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - 1.5707963267948966D, -1, WALL_STICK);
+            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - HALF_PI, -1, WALL_STICK);
         } else {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + 1.5707963267948966D, 1, WALL_STICK);
+            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + HALF_PI, 1, WALL_STICK);
         }
         setBackAsFront(_bot, angle);
     }
