@@ -20,7 +20,6 @@ public class PatternMatcher {
     private static final ArrayList<MovementState> _record = new ArrayList<>(3000);
     private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
     private double _enemyHeading = 0.0;
-    private double _enemyEnergy = 100.0;
     private Bakko _bot;
 
     public PatternMatcher(Bakko bot) {
@@ -33,17 +32,8 @@ public class PatternMatcher {
     public void onScannedRobot(ScannedRobotEvent e) {
         double _deltaHeading = e.getHeadingRadians() - _enemyHeading;
         _enemyHeading = e.getHeadingRadians();
-        double enemyBearing = _bot.getHeadingRadians() + e.getBearingRadians();
-        _enemyEnergy = e.getEnergy();
-        if (_enemyEnergy < 0.1) {
-            //TODO: Check if this even works if the enemy heals.
-            //TODO: return after?
-            _bot.stop();
-            _bot.setTurnGunRightRadians(enemyBearing);
-            _bot.setFire(0.1);
-        }
         record(_deltaHeading, e.getVelocity());
-        double power = bulletPower();
+        double power = bulletPower(e.getEnergy());
         if (_bot.getRoundNum() != 0) {
             Point2D.Double predictedPosition = predictPosition(power);
             double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
@@ -71,15 +61,17 @@ public class PatternMatcher {
         _bot.setFire(power);
     }
 
-    private double bulletPower() {
+    private double bulletPower(double enemyEnergy) {
         double energy = _bot.getEnergy();
-        if (_enemyEnergy <= 1.0) {
+        if (enemyEnergy < 0.1) {
+            return 0.1;
+        } else if (enemyEnergy <= 1.0) {
             return Math.min(0.3, energy);
-        } else if (_enemyEnergy <= 2.0 && _enemyEnergy > 1.0) {
+        } else if (enemyEnergy <= 2.0 && enemyEnergy > 1.0) {
             return Math.min(0.6, energy);
-        } else if (_enemyEnergy <= 3.0 && _enemyEnergy > 2.0) {
+        } else if (enemyEnergy <= 3.0 && enemyEnergy > 2.0) {
             return Math.min(0.8, energy);
-        } else if (_enemyEnergy <= 4.0 && _enemyEnergy > 3.0) {
+        } else if (enemyEnergy <= 4.0 && enemyEnergy > 3.0) {
             return Math.min(1.0, energy);
         } else {
             return Math.min(2.0, energy);
