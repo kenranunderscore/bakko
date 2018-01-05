@@ -94,7 +94,7 @@ public class PatternMatcher {
             MovementState ms = _record.get(i);
             iterator.add(ms);
             double distance = iterator.compare(_recent);
-            if (distance < minimumDistance) {
+            if (distance <= minimumDistance) {
                 minimumDistance = distance;
                 indexOfMinimumDistance = i;
             }
