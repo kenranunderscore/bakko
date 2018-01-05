@@ -17,6 +17,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class PatternMatcher {
     private static final int MAX_RECORD_LENGTH = 3000;
     private static final int RECENT_PATTERN_LENGTH = 12;
+    private static final double DEFAULT_BULLET_POWER = 1.9;
     private static final ArrayList<MovementState> _record = new ArrayList<>(3000);
     private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
     private double _enemyHeading = 0.0;
@@ -33,7 +34,7 @@ public class PatternMatcher {
         double _deltaHeading = e.getHeadingRadians() - _enemyHeading;
         _enemyHeading = e.getHeadingRadians();
         record(_deltaHeading, e.getVelocity());
-        double power = bulletPower(e.getEnergy());
+        double power = bulletPower(e.getEnergy(), e.getDistance());
         if (_bot.getRoundNum() != 0) {
             Point2D.Double predictedPosition = predictPosition(power);
             double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
@@ -57,25 +58,19 @@ public class PatternMatcher {
             double theta = normalAbsoluteAngle(absoluteBearing(_bot.getPosition(), predictedPosition));
             _bot.setTurnGunRightRadians(normalRelativeAngle(theta - _bot.getGunHeadingRadians()));
         }
-        //TODO: gun heat?
         _bot.setFire(power);
     }
 
-    private double bulletPower(double enemyEnergy) {
-        double energy = _bot.getEnergy();
+    private double bulletPower(double enemyEnergy, double distance) {
         if (enemyEnergy < 0.1) {
-            return 0.1;
-        } else if (enemyEnergy <= 1.0) {
-            return Math.min(0.3, energy);
-        } else if (enemyEnergy <= 2.0 && enemyEnergy > 1.0) {
-            return Math.min(0.6, energy);
-        } else if (enemyEnergy <= 3.0 && enemyEnergy > 2.0) {
-            return Math.min(0.8, energy);
-        } else if (enemyEnergy <= 4.0 && enemyEnergy > 3.0) {
-            return Math.min(1.0, energy);
-        } else {
-            return Math.min(2.0, energy);
+            return Rules.MIN_BULLET_POWER;
         }
+        double power = distance < 150 ? Rules.MAX_BULLET_POWER : DEFAULT_BULLET_POWER;
+        double powerToKill = enemyEnergy >= 16.0 ? (enemyEnergy + 2.0) / 6.0 : enemyEnergy / 4.0;
+        power = Math.min(powerToKill, power);
+        power = Math.max(Rules.MIN_BULLET_POWER, power);
+        power = Math.min(_bot.getEnergy(), power);
+        return power;
     }
 
     private void record(double turnRate, double velocity) {
