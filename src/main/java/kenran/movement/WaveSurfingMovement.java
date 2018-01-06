@@ -15,9 +15,10 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class WaveSurfingMovement {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
-    private static final int NUMBER_OF_DISTANCE_SEGMENTS = 3;
+    private static final int DISTANCE_SEGMENT_COUNT = 3;
+    private static final int ACCELERATION_SEGMENT_COUNT = 3;
     private static final double DISTANCE_KEEPING_ANGLE = Math.PI / 2.0 - 0.2;
-    private static final double[][] _surfStats = new double[NUMBER_OF_DISTANCE_SEGMENTS][BINS];
+    private static final double[][][] _surfStats = new double[DISTANCE_SEGMENT_COUNT][ACCELERATION_SEGMENT_COUNT][BINS];
 
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
     private final ArrayList<Integer> _surfDirections = new ArrayList<>();
@@ -25,6 +26,7 @@ public class WaveSurfingMovement {
     private final Bakko _bot;
 
     private double _enemyEnergy = 100.0;
+    private double _lastVelocity = 0.0;
 
     public WaveSurfingMovement(Bakko bot) {
         _bot = bot;
@@ -47,8 +49,10 @@ public class WaveSurfingMovement {
             w.angle = _surfAbsBearings.get(2);
             w.firePosition = (Point2D.Double)_bot.getEnemyPosition().clone();
             w.distanceSegment = distanceSegment(e.getDistance());
+            w.accelerationSegment = accelerationSegment();
             _enemyWaves.add(w);
         }
+        _lastVelocity = _bot.getVelocity();
         updateWaves();
         surf();
     }
@@ -107,6 +111,14 @@ public class WaveSurfingMovement {
         }
     }
 
+    private int accelerationSegment() {
+        double velocityDifference = _bot.getVelocity() - _lastVelocity;
+        if (velocityDifference == 0.0) {
+            return 1;
+        }
+        return velocityDifference < 0 ? 0 : 2;
+    }
+
     private void updateWaves() {
         for (int i = 0; i < _enemyWaves.size(); i++) {
             Wave w = _enemyWaves.get(i);
@@ -140,7 +152,7 @@ public class WaveSurfingMovement {
     private void logHit(Wave wave, Point2D.Double position) {
         int i = getFactorIndex(wave, position);
         for (int j = 0; j < BINS; j++) {
-            _surfStats[wave.distanceSegment][j] += 1.0 / (Math.pow(i - j, 2.0) + 1.0);
+            _surfStats[wave.distanceSegment][wave.accelerationSegment][j] += 1.0 / (Math.pow(i - j, 2.0) + 1.0);
         }
     }
 
@@ -179,7 +191,7 @@ public class WaveSurfingMovement {
 
     private double checkDanger(Wave wave, int direction) {
         int i = getFactorIndex(wave, predictPosition(wave, direction));
-        return _surfStats[wave.distanceSegment][i];
+        return _surfStats[wave.distanceSegment][wave.accelerationSegment][i];
     }
 
     private void surf() {
