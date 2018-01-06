@@ -50,5 +50,6 @@ task copyJarToRoborunnerDir(type: Copy) {
 }
 
 build.dependsOn createPropertiesFile
+build.mustRunAfter createPropertiesFile
 build.finalizedBy copyJarToRobocodeDir
 build.finalizedBy copyJarToRoborunnerDir
