@@ -70,7 +70,7 @@ public class WaveSurfingMovement {
         }
         if (hitWave != null) {
             logHit(hitWave, hitPosition);
-            _enemyWaves.remove(_enemyWaves.lastIndexOf(hitWave));
+            _enemyWaves.remove(hitWave);
         }
     }
 
@@ -89,7 +89,7 @@ public class WaveSurfingMovement {
         }
         if (hitWave != null) {
             logHit(hitWave, hitPosition);
-            _enemyWaves.remove(_enemyWaves.lastIndexOf(hitWave));
+            _enemyWaves.remove(hitWave);
         }
     }
 
