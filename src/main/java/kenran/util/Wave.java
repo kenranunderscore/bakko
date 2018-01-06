@@ -9,4 +9,5 @@ public class Wave {
     public double angle;
     public double traveledDistance;
     public int direction;
+    public int distanceSegment;
 }

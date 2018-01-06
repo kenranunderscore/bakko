@@ -15,8 +15,9 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class WaveSurfingMovement {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
+    private static final int NUMBER_OF_DISTANCE_SEGMENTS = 3;
     private static final double DISTANCE_KEEPING_ANGLE = Math.PI / 2.0 - 0.2;
-    private static final double[] _surfStats = new double[BINS];
+    private static final double[][] _surfStats = new double[NUMBER_OF_DISTANCE_SEGMENTS][BINS];
 
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
     private final ArrayList<Integer> _surfDirections = new ArrayList<>();
@@ -45,6 +46,7 @@ public class WaveSurfingMovement {
             w.direction = _surfDirections.get(2);
             w.angle = _surfAbsBearings.get(2);
             w.firePosition = (Point2D.Double)_bot.getEnemyPosition().clone();
+            w.distanceSegment = distanceSegment(e.getDistance());
             _enemyWaves.add(w);
         }
         updateWaves();
@@ -95,6 +97,16 @@ public class WaveSurfingMovement {
         _enemyEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
     }
 
+    private int distanceSegment(double distance) {
+        if (distance <= 300) {
+            return 0;
+        } else if (distance <= 600) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
     private void updateWaves() {
         for (int i = 0; i < _enemyWaves.size(); i++) {
             Wave w = _enemyWaves.get(i);
@@ -128,7 +140,7 @@ public class WaveSurfingMovement {
     private void logHit(Wave wave, Point2D.Double position) {
         int i = getFactorIndex(wave, position);
         for (int j = 0; j < BINS; j++) {
-            _surfStats[j] += 1.0 / (Math.pow(i - j, 2.0) + 1.0);
+            _surfStats[wave.distanceSegment][j] += 1.0 / (Math.pow(i - j, 2.0) + 1.0);
         }
     }
 
@@ -167,7 +179,7 @@ public class WaveSurfingMovement {
 
     private double checkDanger(Wave wave, int direction) {
         int i = getFactorIndex(wave, predictPosition(wave, direction));
-        return _surfStats[i];
+        return _surfStats[wave.distanceSegment][i];
     }
 
     private void surf() {
