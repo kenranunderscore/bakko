@@ -1,6 +1,7 @@
 package kenran.movement;
 
 import kenran.Bakko;
+import kenran.util.FixedSizeQueue;
 import kenran.util.Wave;
 import robocode.*;
 
@@ -21,8 +22,8 @@ public class WaveSurfingMovement {
     private static final double[][][] _surfStats = new double[DISTANCE_SEGMENT_COUNT][ACCELERATION_SEGMENT_COUNT][BINS];
 
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
-    private final ArrayList<Integer> _surfDirections = new ArrayList<>();
-    private final ArrayList<Double> _surfAbsBearings = new ArrayList<>();
+    private final FixedSizeQueue<Integer> _surfDirections = new FixedSizeQueue<>(3);
+    private final FixedSizeQueue<Double> _surfAbsBearings = new FixedSizeQueue<>(3);
     private final Point2D.Double _enemyPosition = new Point2D.Double();
     private final Bakko _bot;
 
@@ -36,18 +37,18 @@ public class WaveSurfingMovement {
     public void onScannedRobot(ScannedRobotEvent e) {
         double enemyBearing = _bot.getHeadingRadians() + e.getBearingRadians();
         double lateralVelocity = _bot.getVelocity() * Math.sin(e.getBearingRadians());
-        _surfDirections.add(0, lateralVelocity >= 0.0 ? 1 : -1);
-        _surfAbsBearings.add(0, enemyBearing + Math.PI);
+        _surfDirections.push(lateralVelocity >= 0.0 ? 1 : -1);
+        _surfAbsBearings.push(enemyBearing + Math.PI);
         double deltaEnergy = _enemyEnergy - e.getEnergy();
         _enemyEnergy = e.getEnergy();
-        if (deltaEnergy <= Rules.MAX_BULLET_POWER && deltaEnergy >= Rules.MIN_BULLET_POWER && _surfDirections.size() > 2) {
+        if (deltaEnergy <= Rules.MAX_BULLET_POWER && deltaEnergy >= Rules.MIN_BULLET_POWER && _surfDirections.isFull()) {
             double bulletVelocity = Rules.getBulletSpeed(deltaEnergy);
             Wave w = new Wave();
             w.fireTime = _bot.getTime() - 1;
             w.bulletVelocity = bulletVelocity;
             w.traveledDistance = bulletVelocity;
-            w.direction = _surfDirections.get(2);
-            w.angle = _surfAbsBearings.get(2);
+            w.direction = _surfDirections.peek();
+            w.angle = _surfAbsBearings.peek();
             w.firePosition = (Point2D.Double)_enemyPosition.clone();
             w.distanceSegment = distanceSegment(e.getDistance());
             w.accelerationSegment = accelerationSegment();
