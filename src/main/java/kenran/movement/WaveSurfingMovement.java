@@ -178,7 +178,7 @@ public class WaveSurfingMovement {
                 goDirection = -1.0;
             }
             goAngle = normalRelativeAngle(goAngle);
-            double maxTurnRate = Math.PI / 720.0 * (40.0 - 3.0 * Math.abs(velocity));
+            double maxTurnRate = Rules.getTurnRateRadians(velocity);
             heading = normalRelativeAngle(heading + limit(-maxTurnRate, goAngle, maxTurnRate));
             velocity += (velocity * goDirection < 0.0 ? 2.0 * goDirection : goDirection);
             velocity = limit(-Rules.MAX_VELOCITY, velocity, Rules.MAX_VELOCITY);
