@@ -7,3 +7,4 @@
 - Use a more appropriate data structure for surfing data, as usually only 3 entries are needed
 - Refactor the duplicate code in onHitByBullet and onBulletHitBullet
 - Switch to self-implemented GoTo surfing?
+- Unit tests?
