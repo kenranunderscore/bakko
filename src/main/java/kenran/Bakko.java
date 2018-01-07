@@ -5,6 +5,7 @@ import kenran.movement.WaveSurfingMovement;
 import kenran.radar.LockingRadar;
 import robocode.*;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -63,6 +64,11 @@ public class Bakko extends AdvancedRobot {
     @Override
     public void onWin(WinEvent event) {
         _hasWon = true;
+    }
+
+    @Override
+    public void onPaint(Graphics2D g) {
+        _movement.onPaint(g);
     }
 
     public Point2D.Double getPosition() {

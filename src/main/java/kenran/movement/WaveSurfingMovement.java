@@ -1,10 +1,12 @@
 package kenran.movement;
 
 import kenran.Bakko;
+import kenran.gfx.GfxUtils;
 import kenran.util.FixedSizeQueue;
 import kenran.util.Wave;
 import robocode.*;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
@@ -209,5 +211,12 @@ public class WaveSurfingMovement {
             angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + DISTANCE_KEEPING_ANGLE, 1, WALL_STICK);
         }
         setBackAsFront(_bot, angle);
+    }
+
+    public void onPaint(Graphics2D g) {
+        g.setColor(Color.GRAY);
+        for (Wave w : _enemyWaves) {
+            GfxUtils.drawCircle(g, w.firePosition, w.traveledDistance);
+        }
     }
 }
