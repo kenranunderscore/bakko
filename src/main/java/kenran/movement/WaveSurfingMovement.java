@@ -31,6 +31,7 @@ public class WaveSurfingMovement {
 
     private double _enemyEnergy = 100.0;
     private double _lastVelocity = 0.0;
+    private Wave _surfWave = null;
 
     public WaveSurfingMovement(Bakko bot) {
         _bot = bot;
@@ -200,11 +201,13 @@ public class WaveSurfingMovement {
     }
 
     private void surf() {
-        Wave surfWave = getClosestSurfableWave();
-        if (surfWave == null) return;
-        double dangerLeft = checkDanger(surfWave, -1);
-        double dangerRight = checkDanger(surfWave, 1);
-        double angle = absoluteBearing(surfWave.firePosition, _bot.getPosition());
+        _surfWave = getClosestSurfableWave();
+        if (_surfWave == null) {
+            return;
+        }
+        double dangerLeft = checkDanger(_surfWave, -1);
+        double dangerRight = checkDanger(_surfWave, 1);
+        double angle = absoluteBearing(_surfWave.firePosition, _bot.getPosition());
         if (dangerLeft < dangerRight) {
             angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - DISTANCE_KEEPING_ANGLE, -1, WALL_STICK);
         } else {
@@ -214,8 +217,12 @@ public class WaveSurfingMovement {
     }
 
     public void onPaint(Graphics2D g) {
-        g.setColor(Color.GRAY);
         for (Wave w : _enemyWaves) {
+            if (w == _surfWave) {
+                g.setColor(Color.ORANGE);
+            } else {
+                g.setColor(Color.GRAY);
+            }
             GfxUtils.drawCircle(g, w.firePosition, w.traveledDistance);
         }
     }
