@@ -23,6 +23,7 @@ public class WaveSurfingMovement {
     private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
     private final ArrayList<Integer> _surfDirections = new ArrayList<>();
     private final ArrayList<Double> _surfAbsBearings = new ArrayList<>();
+    private final Point2D.Double _enemyPosition = new Point2D.Double();
     private final Bakko _bot;
 
     private double _enemyEnergy = 100.0;
@@ -47,11 +48,12 @@ public class WaveSurfingMovement {
             w.traveledDistance = bulletVelocity;
             w.direction = _surfDirections.get(2);
             w.angle = _surfAbsBearings.get(2);
-            w.firePosition = (Point2D.Double)_bot.getEnemyPosition().clone();
+            w.firePosition = (Point2D.Double)_enemyPosition.clone();
             w.distanceSegment = distanceSegment(e.getDistance());
             w.accelerationSegment = accelerationSegment();
             _enemyWaves.add(w);
         }
+        _enemyPosition.setLocation(_bot.getEnemyPosition());
         _lastVelocity = _bot.getVelocity();
         updateWaves();
         surf();
