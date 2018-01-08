@@ -18,6 +18,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class WaveSurfingMovement {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
+    private static final int MIDDLE_BIN = (BINS - 1) / 2;
     private static final int DISTANCE_SEGMENT_COUNT = 3;
     private static final int ACCELERATION_SEGMENT_COUNT = 3;
     private static final double DISTANCE_KEEPING_ANGLE = Math.PI / 2.0 - 0.2;
@@ -152,7 +153,7 @@ public class WaveSurfingMovement {
     private static int getFactorIndex(Wave wave, Point2D.Double position) {
         double d1 = absoluteBearing(wave.firePosition, position) - wave.angle;
         double d2 = normalRelativeAngle(d1) / maxEscapeAngle(wave.bulletVelocity) * wave.direction;
-        return (int)limit(0.0, d2 * 23.0 + 23.0, 46.0);
+        return (int)limit(0, d2 * MIDDLE_BIN + MIDDLE_BIN, BINS - 1);
     }
 
     private void logHit(Wave wave, Point2D.Double position) {
