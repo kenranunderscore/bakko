@@ -1,4 +1,4 @@
-package kenran.movement;
+package kenran.shield;
 
 import kenran.util.MovementState;
 

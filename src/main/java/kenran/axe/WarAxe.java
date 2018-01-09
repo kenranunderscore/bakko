@@ -1,7 +1,7 @@
-package kenran.gun;
+package kenran.axe;
 
 import kenran.Bakko;
-import kenran.movement.MovementDeque;
+import kenran.shield.MovementDeque;
 import kenran.util.MovementState;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
@@ -11,10 +11,9 @@ import java.util.ArrayList;
 
 import static kenran.util.Utils.absoluteBearing;
 import static kenran.util.Utils.bulletTravelTime;
-import static robocode.util.Utils.normalAbsoluteAngle;
 import static robocode.util.Utils.normalRelativeAngle;
 
-public class PatternMatcher {
+public class WarAxe {
     private static final int MAX_RECORD_LENGTH = 3000;
     private static final int RECENT_PATTERN_LENGTH = 12;
     private static final int MINIMUM_NUMBER_OF_RECORDS = 50;
@@ -22,10 +21,10 @@ public class PatternMatcher {
     private static final ArrayList<MovementState> _record = new ArrayList<>(MAX_RECORD_LENGTH);
     private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
     private double _enemyHeading = 0.0;
-    private Bakko _bot;
+    private Bakko _bakko;
 
-    public PatternMatcher(Bakko bot) {
-        _bot = bot;
+    public WarAxe(Bakko bakko) {
+        _bakko = bakko;
         for (int i = 0; i < _recent.getMaxSize(); i++) {
             _recent.add(new MovementState(0.0, Rules.MAX_VELOCITY));
         }
@@ -38,13 +37,13 @@ public class PatternMatcher {
         double power = bulletPower(e.getEnergy(), e.getDistance());
         if (_record.size() > MINIMUM_NUMBER_OF_RECORDS) {
             Point2D.Double predictedPosition = predictPosition(power);
-            double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
-            _bot.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bot.getGunHeadingRadians()));
+            double predictedHeading = absoluteBearing(_bakko.getPosition(), predictedPosition);
+            _bakko.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bakko.getGunHeadingRadians()));
         } else {
-            double enemyBearing = _bot.getHeadingRadians() + e.getBearingRadians();
-            _bot.setTurnGunRightRadians(normalRelativeAngle(enemyBearing - _bot.getGunHeadingRadians()));
+            double enemyBearing = _bakko.getHeadingRadians() + e.getBearingRadians();
+            _bakko.setTurnGunRightRadians(normalRelativeAngle(enemyBearing - _bakko.getGunHeadingRadians()));
         }
-        _bot.setFire(power);
+        _bakko.setFire(power);
     }
 
     private double bulletPower(double enemyEnergy, double distance) {
@@ -55,7 +54,7 @@ public class PatternMatcher {
         double powerToKill = enemyEnergy >= 16.0 ? (enemyEnergy + 2.0) / 6.0 : enemyEnergy / 4.0;
         power = Math.min(powerToKill, power);
         power = Math.max(Rules.MIN_BULLET_POWER, power);
-        power = Math.min(_bot.getEnergy(), power);
+        power = Math.min(_bakko.getEnergy(), power);
         return power;
     }
 
@@ -91,7 +90,7 @@ public class PatternMatcher {
 
     private Point2D.Double predictPosition(double power) {
         int i = lastIndexOfMatchingSeries();
-        Point2D.Double predictedPosition = (Point2D.Double)_bot.getEnemyPosition().clone();
+        Point2D.Double predictedPosition = (Point2D.Double) _bakko.getEnemyPosition().clone();
         double heading = _enemyHeading;
         double travelTime = 0.0;
         double turns = 0.0;
@@ -100,7 +99,7 @@ public class PatternMatcher {
             predictedPosition.x += Math.sin(heading) * ms.getVelocity();
             predictedPosition.y += Math.cos(heading) * ms.getVelocity();
             heading += ms.getTurnRate();
-            travelTime = bulletTravelTime(_bot.getPosition().distance(predictedPosition), power);
+            travelTime = bulletTravelTime(_bakko.getPosition().distance(predictedPosition), power);
             turns += 1.0;
         }
         return predictedPosition;

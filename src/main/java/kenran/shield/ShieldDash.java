@@ -1,4 +1,4 @@
-package kenran.movement;
+package kenran.shield;
 
 import kenran.Bakko;
 import kenran.gfx.GfxUtils;
@@ -15,7 +15,7 @@ import static kenran.util.Utils.setBackAsFront;
 import static kenran.util.Utils.wallSmoothing;
 import static robocode.util.Utils.normalRelativeAngle;
 
-public class WaveSurfingMovement {
+public class ShieldDash {
     private static final double WALL_STICK = 160.0;
     private static final int BINS = 47;
     private static final int MIDDLE_BIN = (BINS - 1) / 2;
@@ -28,19 +28,19 @@ public class WaveSurfingMovement {
     private final FixedSizeQueue<Integer> _surfDirections = new FixedSizeQueue<>(3);
     private final FixedSizeQueue<Double> _surfAbsBearings = new FixedSizeQueue<>(3);
     private final Point2D.Double _enemyPosition = new Point2D.Double();
-    private final Bakko _bot;
+    private final Bakko _bakko;
 
     private double _enemyEnergy = 100.0;
     private double _lastVelocity = 0.0;
     private Wave _surfWave = null;
 
-    public WaveSurfingMovement(Bakko bot) {
-        _bot = bot;
+    public ShieldDash(Bakko bakko) {
+        _bakko = bakko;
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        double enemyBearing = _bot.getHeadingRadians() + e.getBearingRadians();
-        double lateralVelocity = _bot.getVelocity() * Math.sin(e.getBearingRadians());
+        double enemyBearing = _bakko.getHeadingRadians() + e.getBearingRadians();
+        double lateralVelocity = _bakko.getVelocity() * Math.sin(e.getBearingRadians());
         _surfDirections.push(lateralVelocity >= 0.0 ? 1 : -1);
         _surfAbsBearings.push(enemyBearing + Math.PI);
         double deltaEnergy = _enemyEnergy - e.getEnergy();
@@ -48,7 +48,7 @@ public class WaveSurfingMovement {
         if (deltaEnergy <= Rules.MAX_BULLET_POWER && deltaEnergy >= Rules.MIN_BULLET_POWER && _surfDirections.isFull()) {
             double bulletVelocity = Rules.getBulletSpeed(deltaEnergy);
             Wave w = new Wave();
-            w.fireTime = _bot.getTime() - 1;
+            w.fireTime = _bakko.getTime() - 1;
             w.bulletVelocity = bulletVelocity;
             w.traveledDistance = bulletVelocity;
             w.direction = _surfDirections.peek();
@@ -58,8 +58,8 @@ public class WaveSurfingMovement {
             w.accelerationSegment = accelerationSegment();
             _enemyWaves.add(w);
         }
-        _enemyPosition.setLocation(_bot.getEnemyPosition());
-        _lastVelocity = _bot.getVelocity();
+        _enemyPosition.setLocation(_bakko.getEnemyPosition());
+        _lastVelocity = _bakko.getVelocity();
         updateWaves();
         surf();
     }
@@ -74,7 +74,7 @@ public class WaveSurfingMovement {
         Point2D.Double hitPosition = new Point2D.Double(bullet.getX(), bullet.getY());
         Wave hitWave = null;
         for (Wave wave : _enemyWaves) {
-            if ((Math.abs(wave.traveledDistance - _bot.getPosition().distance(wave.firePosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
+            if ((Math.abs(wave.traveledDistance - _bakko.getPosition().distance(wave.firePosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
                 hitWave = wave;
                 break;
             }
@@ -119,7 +119,7 @@ public class WaveSurfingMovement {
     }
 
     private int accelerationSegment() {
-        double velocityDifference = _bot.getVelocity() - _lastVelocity;
+        double velocityDifference = _bakko.getVelocity() - _lastVelocity;
         if (velocityDifference == 0.0) {
             return 1;
         }
@@ -129,8 +129,8 @@ public class WaveSurfingMovement {
     private void updateWaves() {
         for (int i = 0; i < _enemyWaves.size(); i++) {
             Wave w = _enemyWaves.get(i);
-            w.traveledDistance = (_bot.getTime() - w.fireTime) * w.bulletVelocity;
-            if (w.traveledDistance > _bot.getPosition().distance(w.firePosition) + 50.0D) {
+            w.traveledDistance = (_bakko.getTime() - w.fireTime) * w.bulletVelocity;
+            if (w.traveledDistance > _bakko.getPosition().distance(w.firePosition) + 50.0D) {
                 _enemyWaves.remove(i);
                 i--;
             }
@@ -141,7 +141,7 @@ public class WaveSurfingMovement {
         double minimumDistance = Double.POSITIVE_INFINITY;
         Wave surfWave = null;
         for (Wave wave : _enemyWaves) {
-            double distance = _bot.getPosition().distance(wave.firePosition) - wave.traveledDistance;
+            double distance = _bakko.getPosition().distance(wave.firePosition) - wave.traveledDistance;
             if (distance > wave.bulletVelocity && distance < minimumDistance) {
                 surfWave = wave;
                 minimumDistance = distance;
@@ -164,15 +164,15 @@ public class WaveSurfingMovement {
     }
 
     private Point2D.Double predictPosition(Wave wave, int direction) {
-        Point2D.Double impactPosition = (Point2D.Double)_bot.getPosition().clone();
-        double velocity = _bot.getVelocity();
-        double heading = _bot.getHeadingRadians();
+        Point2D.Double impactPosition = (Point2D.Double) _bakko.getPosition().clone();
+        double velocity = _bakko.getVelocity();
+        double heading = _bakko.getHeadingRadians();
         int turnCount = 0;
         boolean intercepted = false;
         do {
             double unsmoothedAngle = absoluteBearing(wave.firePosition, impactPosition) + direction * DISTANCE_KEEPING_ANGLE;
             double goAngle = wallSmoothing(
-                    _bot.getBattleField(),
+                    _bakko.getBattleField(),
                     impactPosition,
                     unsmoothedAngle,
                     direction,
@@ -208,13 +208,13 @@ public class WaveSurfingMovement {
         }
         double dangerLeft = checkDanger(_surfWave, -1);
         double dangerRight = checkDanger(_surfWave, 1);
-        double angle = absoluteBearing(_surfWave.firePosition, _bot.getPosition());
+        double angle = absoluteBearing(_surfWave.firePosition, _bakko.getPosition());
         if (dangerLeft < dangerRight) {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle - DISTANCE_KEEPING_ANGLE, -1, WALL_STICK);
+            angle = wallSmoothing(_bakko.getBattleField(), _bakko.getPosition(), angle - DISTANCE_KEEPING_ANGLE, -1, WALL_STICK);
         } else {
-            angle = wallSmoothing(_bot.getBattleField(), _bot.getPosition(), angle + DISTANCE_KEEPING_ANGLE, 1, WALL_STICK);
+            angle = wallSmoothing(_bakko.getBattleField(), _bakko.getPosition(), angle + DISTANCE_KEEPING_ANGLE, 1, WALL_STICK);
         }
-        setBackAsFront(_bot, angle);
+        setBackAsFront(_bakko, angle);
     }
 
     public void onPaint(Graphics2D g) {

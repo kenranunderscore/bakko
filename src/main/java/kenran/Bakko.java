@@ -1,8 +1,8 @@
 package kenran;
 
-import kenran.gun.PatternMatcher;
-import kenran.movement.WaveSurfingMovement;
-import kenran.radar.LockingRadar;
+import kenran.axe.WarAxe;
+import kenran.shield.ShieldDash;
+import kenran.eyes.HeroicGaze;
 import robocode.*;
 
 import java.awt.*;
@@ -16,9 +16,9 @@ public class Bakko extends AdvancedRobot {
     private final Point2D.Double _enemyPosition = new Point2D.Double();
     private final Point2D.Double _position = new Point2D.Double();
 
-    private LockingRadar _radar;
-    private WaveSurfingMovement _movement;
-    private PatternMatcher _gun;
+    private HeroicGaze _heroicGaze;
+    private ShieldDash _shieldDash;
+    private WarAxe _warAxe;
     private boolean _hasWon = false;
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -26,14 +26,14 @@ public class Bakko extends AdvancedRobot {
     public void run() {
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
-        _radar = new LockingRadar(this, RADAR_LOCK_MULTIPLIER);
-        _movement = new WaveSurfingMovement(this);
-        _gun = new PatternMatcher(this);
+        _heroicGaze = new HeroicGaze(this, RADAR_LOCK_MULTIPLIER);
+        _shieldDash = new ShieldDash(this);
+        _warAxe = new WarAxe(this);
         if (_fieldRect == null) {
             _fieldRect = new Rectangle2D.Double(18.0, 18.0, getBattleFieldWidth() - 36.0, getBattleFieldHeight() - 36.0);
         }
         while (true) {
-            _radar.checkForSlip();
+            _heroicGaze.lookForEscapedEnemy();
             execute();
         }
     }
@@ -41,24 +41,24 @@ public class Bakko extends AdvancedRobot {
     @Override
     public void onScannedRobot(ScannedRobotEvent e) {
         _position.setLocation(getX(), getY());
-        _radar.onScannedRobot(e);
-        _gun.onScannedRobot(e);
-        _movement.onScannedRobot(e);
+        _heroicGaze.onScannedRobot(e);
+        _warAxe.onScannedRobot(e);
+        _shieldDash.onScannedRobot(e);
     }
 
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
-        _movement.onHitByBullet(e);
+        _shieldDash.onHitByBullet(e);
     }
 
     @Override
     public void onBulletHitBullet(BulletHitBulletEvent e) {
-        _movement.onBulletHitBullet(e);
+        _shieldDash.onBulletHitBullet(e);
     }
 
     @Override
     public void onBulletHit(BulletHitEvent e) {
-        _movement.onBulletHit(e);
+        _shieldDash.onBulletHit(e);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class Bakko extends AdvancedRobot {
 
     @Override
     public void onPaint(Graphics2D g) {
-        _movement.onPaint(g);
+        _shieldDash.onPaint(g);
     }
 
     public Point2D.Double getPosition() {
