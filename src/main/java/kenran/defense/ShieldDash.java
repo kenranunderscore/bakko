@@ -1,4 +1,4 @@
-package kenran.shield;
+package kenran.defense;
 
 import kenran.Bakko;
 import kenran.gfx.GfxUtils;
@@ -209,11 +209,13 @@ public class ShieldDash {
         double dangerLeft = checkDanger(_surfWave, -1);
         double dangerRight = checkDanger(_surfWave, 1);
         double angle = absoluteBearing(_surfWave.firePosition, _bakko.getPosition());
-        if (dangerLeft < dangerRight) {
-            angle = wallSmoothing(_bakko.getBattleField(), _bakko.getPosition(), angle - DISTANCE_KEEPING_ANGLE, -1, WALL_STICK);
-        } else {
-            angle = wallSmoothing(_bakko.getBattleField(), _bakko.getPosition(), angle + DISTANCE_KEEPING_ANGLE, 1, WALL_STICK);
-        }
+        int orientation = dangerLeft < dangerRight ? -1 : 1;
+        angle = wallSmoothing(
+                _bakko.getBattleField(),
+                _bakko.getPosition(),
+                angle + orientation * DISTANCE_KEEPING_ANGLE,
+                orientation,
+                WALL_STICK);
         setBackAsFront(_bakko, angle);
     }
 

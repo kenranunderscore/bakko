@@ -1,4 +1,4 @@
-package kenran.eyes;
+package kenran.sight;
 
 import kenran.Bakko;
 import robocode.ScannedRobotEvent;

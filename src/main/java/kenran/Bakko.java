@@ -1,8 +1,8 @@
 package kenran;
 
-import kenran.axe.WarAxe;
-import kenran.shield.ShieldDash;
-import kenran.eyes.HeroicGaze;
+import kenran.offense.WarAxe;
+import kenran.defense.ShieldDash;
+import kenran.sight.HeroicGaze;
 import robocode.*;
 
 import java.awt.*;
