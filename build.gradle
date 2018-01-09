@@ -27,7 +27,7 @@ task createPropertiesFile {
         }
 
         def writer = targetFile.newWriter()
-        writer << "robot.description=Nothing interesting yet\n"
+        writer << "robot.description=A pattern matching, wave surfing warrior\n"
         writer << "robocode.version=1.9\n"
         writer << "robot.java.source.included=true\n"
         writer << "robot.version=${gitVersion}\n"
