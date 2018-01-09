@@ -24,6 +24,10 @@ public class Bakko extends AdvancedRobot {
     @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
+        setScanColor(new Color(0, 200, 0));
+        setBodyColor(new Color(150, 50, 0));
+        setRadarColor(new Color(30, 90, 30));
+        setGunColor(Color.DARK_GRAY);
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
         _heroicGaze = new HeroicGaze(this, RADAR_LOCK_MULTIPLIER);
