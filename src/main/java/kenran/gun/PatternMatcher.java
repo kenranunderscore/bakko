@@ -17,8 +17,9 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class PatternMatcher {
     private static final int MAX_RECORD_LENGTH = 3000;
     private static final int RECENT_PATTERN_LENGTH = 12;
+    private static final int MINIMUM_NUMBER_OF_RECORDS = 50;
     private static final double DEFAULT_BULLET_POWER = 1.9;
-    private static final ArrayList<MovementState> _record = new ArrayList<>(3000);
+    private static final ArrayList<MovementState> _record = new ArrayList<>(MAX_RECORD_LENGTH);
     private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
     private double _enemyHeading = 0.0;
     private Bakko _bot;
@@ -35,28 +36,13 @@ public class PatternMatcher {
         _enemyHeading = e.getHeadingRadians();
         record(_deltaHeading, e.getVelocity());
         double power = bulletPower(e.getEnergy(), e.getDistance());
-        if (_bot.getRoundNum() != 0) {
+        if (_record.size() > MINIMUM_NUMBER_OF_RECORDS) {
             Point2D.Double predictedPosition = predictPosition(power);
             double predictedHeading = absoluteBearing(_bot.getPosition(), predictedPosition);
             _bot.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bot.getGunHeadingRadians()));
         } else {
-            double bulletVelocity = Rules.getBulletSpeed(power);
-            double turns = 0.0;
-            Point2D.Double predictedPosition = (Point2D.Double)_bot.getEnemyPosition().clone();
-            double heading = _enemyHeading;
-            double battleFieldWidth = _bot.getBattleFieldWidth();
-            double battleFieldHeight = _bot.getBattleFieldHeight();
-            while (++turns * bulletVelocity < _bot.getPosition().distance(predictedPosition)) {
-                predictedPosition.x += Math.sin(heading) * e.getVelocity();
-                predictedPosition.y += Math.cos(heading) * e.getVelocity();
-                heading += _deltaHeading;
-                if (predictedPosition.getX() < 17.9 || predictedPosition.getY() < 17.9 || predictedPosition.getX() > battleFieldWidth - 17.9 || predictedPosition.getY() > battleFieldHeight - 17.9) {
-                    predictedPosition.x = Math.min(Math.max(18.0, predictedPosition.x), battleFieldWidth - 18.0);
-                    predictedPosition.y = Math.min(Math.max(18.0, predictedPosition.y), battleFieldHeight - 18.0);
-                }
-            }
-            double theta = normalAbsoluteAngle(absoluteBearing(_bot.getPosition(), predictedPosition));
-            _bot.setTurnGunRightRadians(normalRelativeAngle(theta - _bot.getGunHeadingRadians()));
+            double enemyBearing = _bot.getHeadingRadians() + e.getBearingRadians();
+            _bot.setTurnGunRightRadians(normalRelativeAngle(enemyBearing - _bot.getGunHeadingRadians()));
         }
         _bot.setFire(power);
     }
@@ -99,7 +85,7 @@ public class PatternMatcher {
                 indexOfMinimumDistance = i;
             }
             i++;
-        } while (i < _record.size() - 50);
+        } while (i < _record.size() - MINIMUM_NUMBER_OF_RECORDS);
         return indexOfMinimumDistance;
     }
 
