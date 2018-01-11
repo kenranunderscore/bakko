@@ -1,4 +1,4 @@
-package kenran.util;
+package kenran.data;
 
 import robocode.Rules;
 

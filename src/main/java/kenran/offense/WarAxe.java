@@ -2,7 +2,7 @@ package kenran.offense;
 
 import kenran.Bakko;
 import kenran.defense.MovementDeque;
-import kenran.util.MovementState;
+import kenran.data.MovementState;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 

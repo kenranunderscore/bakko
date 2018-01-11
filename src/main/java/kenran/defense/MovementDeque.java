@@ -1,6 +1,6 @@
 package kenran.defense;
 
-import kenran.util.MovementState;
+import kenran.data.MovementState;
 
 public class MovementDeque {
     private final int _maxSize;
