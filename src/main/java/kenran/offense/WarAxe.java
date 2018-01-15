@@ -6,6 +6,7 @@ import kenran.data.MovementState;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
@@ -13,7 +14,7 @@ import static kenran.util.Utils.absoluteBearing;
 import static kenran.util.Utils.bulletTravelTime;
 import static robocode.util.Utils.normalRelativeAngle;
 
-public class WarAxe {
+public class WarAxe implements Weapon {
     private static final int MAX_RECORD_LENGTH = 3000;
     private static final int RECENT_PATTERN_LENGTH = 12;
     private static final int MINIMUM_NUMBER_OF_RECORDS = 50;
@@ -23,13 +24,14 @@ public class WarAxe {
     private double _enemyHeading = 0.0;
     private Bakko _bakko;
 
-    public WarAxe(Bakko bakko) {
+    WarAxe(Bakko bakko) {
         _bakko = bakko;
         for (int i = 0; i < _recent.getMaxSize(); i++) {
             _recent.add(new MovementState(0.0, Rules.MAX_VELOCITY));
         }
     }
 
+    @Override
     public void onScannedRobot(ScannedRobotEvent e) {
         double _deltaHeading = e.getHeadingRadians() - _enemyHeading;
         _enemyHeading = e.getHeadingRadians();
@@ -103,5 +105,9 @@ public class WarAxe {
             turns += 1.0;
         }
         return predictedPosition;
+    }
+
+    @Override
+    public void onPaint(Graphics2D g) {
     }
 }

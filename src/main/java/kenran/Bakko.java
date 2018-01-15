@@ -1,7 +1,7 @@
 package kenran;
 
-import kenran.offense.WarAxe;
 import kenran.defense.ShieldDash;
+import kenran.offense.WeaponManager;
 import kenran.sight.HeroicGaze;
 import robocode.*;
 
@@ -18,7 +18,7 @@ public class Bakko extends AdvancedRobot {
 
     private HeroicGaze _heroicGaze;
     private ShieldDash _shieldDash;
-    private WarAxe _warAxe;
+    private WeaponManager _weaponManager;
     private boolean _hasWon = false;
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -32,7 +32,7 @@ public class Bakko extends AdvancedRobot {
         setAdjustRadarForGunTurn(true);
         _heroicGaze = new HeroicGaze(this, RADAR_LOCK_MULTIPLIER);
         _shieldDash = new ShieldDash(this);
-        _warAxe = new WarAxe(this);
+        _weaponManager = new WeaponManager(this);
         if (_fieldRect == null) {
             _fieldRect = new Rectangle2D.Double(18.0, 18.0, getBattleFieldWidth() - 36.0, getBattleFieldHeight() - 36.0);
         }
@@ -46,7 +46,7 @@ public class Bakko extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent e) {
         _position.setLocation(getX(), getY());
         _heroicGaze.onScannedRobot(e);
-        _warAxe.onScannedRobot(e);
+        _weaponManager.onScannedRobot(e);
         _shieldDash.onScannedRobot(e);
     }
 
@@ -72,6 +72,7 @@ public class Bakko extends AdvancedRobot {
 
     @Override
     public void onPaint(Graphics2D g) {
+        _weaponManager.onPaint(g);
         _shieldDash.onPaint(g);
     }
 
