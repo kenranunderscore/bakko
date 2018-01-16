@@ -3,7 +3,7 @@ package kenran.defense;
 import kenran.Bakko;
 import kenran.gfx.GfxUtils;
 import kenran.util.FixedSizeQueue;
-import kenran.util.Wave;
+import kenran.util.EnemyWave;
 import robocode.*;
 
 import java.awt.*;
@@ -24,7 +24,7 @@ public class ShieldDash {
     private static final double DISTANCE_KEEPING_ANGLE = Math.PI / 2.0 - 0.2;
     private static final double[][][] _surfStats = new double[DISTANCE_SEGMENT_COUNT][ACCELERATION_SEGMENT_COUNT][BINS];
 
-    private final ArrayList<Wave> _enemyWaves = new ArrayList<>();
+    private final ArrayList<EnemyWave> _enemyWaves = new ArrayList<>();
     private final FixedSizeQueue<Integer> _surfDirections = new FixedSizeQueue<>(3);
     private final FixedSizeQueue<Double> _surfAbsBearings = new FixedSizeQueue<>(3);
     private final Point2D.Double _enemyPosition = new Point2D.Double();
@@ -32,7 +32,7 @@ public class ShieldDash {
 
     private double _enemyEnergy = 100.0;
     private double _lastVelocity = 0.0;
-    private Wave _surfWave = null;
+    private EnemyWave _surfWave = null;
 
     public ShieldDash(Bakko bakko) {
         _bakko = bakko;
@@ -47,7 +47,7 @@ public class ShieldDash {
         _enemyEnergy = e.getEnergy();
         if (deltaEnergy <= Rules.MAX_BULLET_POWER && deltaEnergy >= Rules.MIN_BULLET_POWER && _surfDirections.isFull()) {
             double bulletVelocity = Rules.getBulletSpeed(deltaEnergy);
-            Wave w = new Wave();
+            EnemyWave w = new EnemyWave();
             w.fireTime = _bakko.getTime() - 1;
             w.bulletVelocity = bulletVelocity;
             w.traveledDistance = bulletVelocity;
@@ -72,8 +72,8 @@ public class ShieldDash {
         }
 
         Point2D.Double hitPosition = new Point2D.Double(bullet.getX(), bullet.getY());
-        Wave hitWave = null;
-        for (Wave wave : _enemyWaves) {
+        EnemyWave hitWave = null;
+        for (EnemyWave wave : _enemyWaves) {
             if ((Math.abs(wave.traveledDistance - _bakko.getPosition().distance(wave.firePosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
                 hitWave = wave;
                 break;
@@ -91,8 +91,8 @@ public class ShieldDash {
         }
 
         Point2D.Double hitPosition = new Point2D.Double(e.getBullet().getX(), e.getBullet().getY());
-        Wave hitWave = null;
-        for (Wave wave : _enemyWaves) {
+        EnemyWave hitWave = null;
+        for (EnemyWave wave : _enemyWaves) {
             if ((Math.abs(wave.traveledDistance - wave.firePosition.distance(hitPosition)) < 50.0D) && (Math.round(Rules.getBulletSpeed(e.getHitBullet().getPower()) * 10.0D) == Math.round(wave.bulletVelocity * 10.0D))) {
                 hitWave = wave;
                 break;
@@ -128,7 +128,7 @@ public class ShieldDash {
 
     private void updateWaves() {
         for (int i = 0; i < _enemyWaves.size(); i++) {
-            Wave w = _enemyWaves.get(i);
+            EnemyWave w = _enemyWaves.get(i);
             w.traveledDistance = (_bakko.getTime() - w.fireTime) * w.bulletVelocity;
             if (w.traveledDistance > _bakko.getPosition().distance(w.firePosition) + 50.0D) {
                 _enemyWaves.remove(i);
@@ -137,10 +137,10 @@ public class ShieldDash {
         }
     }
 
-    private Wave getClosestSurfableWave() {
+    private EnemyWave getClosestSurfableWave() {
         double minimumDistance = Double.POSITIVE_INFINITY;
-        Wave surfWave = null;
-        for (Wave wave : _enemyWaves) {
+        EnemyWave surfWave = null;
+        for (EnemyWave wave : _enemyWaves) {
             double distance = _bakko.getPosition().distance(wave.firePosition) - wave.traveledDistance;
             if (distance > wave.bulletVelocity && distance < minimumDistance) {
                 surfWave = wave;
@@ -150,20 +150,20 @@ public class ShieldDash {
         return surfWave;
     }
 
-    private static int getFactorIndex(Wave wave, Point2D.Double position) {
+    private static int getFactorIndex(EnemyWave wave, Point2D.Double position) {
         double d1 = absoluteBearing(wave.firePosition, position) - wave.angle;
         double d2 = normalRelativeAngle(d1) / maxEscapeAngle(wave.bulletVelocity) * wave.direction;
         return (int)limit(0, d2 * MIDDLE_BIN + MIDDLE_BIN, BINS - 1);
     }
 
-    private void logHit(Wave wave, Point2D.Double position) {
+    private void logHit(EnemyWave wave, Point2D.Double position) {
         int i = getFactorIndex(wave, position);
         for (int j = 0; j < BINS; j++) {
             _surfStats[wave.distanceSegment][wave.accelerationSegment][j] += 1.0 / (Math.pow(i - j, 2.0) + 1.0);
         }
     }
 
-    private Point2D.Double predictPosition(Wave wave, int direction) {
+    private Point2D.Double predictPosition(EnemyWave wave, int direction) {
         Point2D.Double impactPosition = (Point2D.Double) _bakko.getPosition().clone();
         double velocity = _bakko.getVelocity();
         double heading = _bakko.getHeadingRadians();
@@ -196,7 +196,7 @@ public class ShieldDash {
         return impactPosition;
     }
 
-    private double checkDanger(Wave wave, int direction) {
+    private double checkDanger(EnemyWave wave, int direction) {
         int i = getFactorIndex(wave, predictPosition(wave, direction));
         return _surfStats[wave.distanceSegment][wave.accelerationSegment][i];
     }
@@ -220,7 +220,7 @@ public class ShieldDash {
     }
 
     public void onPaint(Graphics2D g) {
-        for (Wave w : _enemyWaves) {
+        for (EnemyWave w : _enemyWaves) {
             if (w == _surfWave) {
                 g.setColor(Color.ORANGE);
             } else {
