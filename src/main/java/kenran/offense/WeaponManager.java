@@ -14,6 +14,7 @@ public class WeaponManager {
         _warAxe = new WarAxe(bakko);
         _circularPredictor = new CircularPredictor(bakko);
         _activeWeapon = _warAxe;
+        _warAxe.setActive(true);
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {

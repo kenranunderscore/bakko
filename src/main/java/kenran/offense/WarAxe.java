@@ -1,7 +1,7 @@
 package kenran.offense;
 
 import kenran.Bakko;
-import kenran.data.Wave;
+import kenran.data.ShotInfo;
 import kenran.defense.MovementDeque;
 import kenran.data.MovementState;
 import robocode.Rules;
@@ -11,7 +11,6 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import static kenran.gfx.GfxUtils.drawCircle;
 import static kenran.util.Utils.absoluteBearing;
 import static kenran.util.Utils.bulletTravelTime;
 import static robocode.util.Utils.normalRelativeAngle;
@@ -23,8 +22,8 @@ public class WarAxe implements Weapon {
     private static final double DEFAULT_BULLET_POWER = 1.9;
     private static final ArrayList<MovementState> _record = new ArrayList<>(MAX_RECORD_LENGTH);
     private final MovementDeque _recent = new MovementDeque(RECENT_PATTERN_LENGTH);
-    private final ArrayList<Wave> _waves = new ArrayList<>();
     private double _enemyHeading = 0.0;
+    private boolean _isActive = false;
     private Bakko _bakko;
 
     WarAxe(Bakko bakko) {
@@ -35,24 +34,23 @@ public class WarAxe implements Weapon {
     }
 
     @Override
-    public void onScannedRobot(ScannedRobotEvent e) {
-        for (Wave wave : _waves) {
-            wave.advance();
-        }
+    public ShotInfo onScannedRobot(ScannedRobotEvent e) {
         double _deltaHeading = e.getHeadingRadians() - _enemyHeading;
         _enemyHeading = e.getHeadingRadians();
         record(_deltaHeading, e.getVelocity());
         double power = bulletPower(e.getEnergy(), e.getDistance());
         if (_record.size() > MINIMUM_NUMBER_OF_RECORDS) {
             Point2D.Double predictedPosition = predictPosition(power);
-            double predictedHeading = absoluteBearing(_bakko.getPosition(), predictedPosition);
-            _bakko.setTurnGunRightRadians(normalRelativeAngle(predictedHeading - _bakko.getGunHeadingRadians()));
+            double predictedAngle = absoluteBearing(_bakko.getPosition(), predictedPosition);
+            double angle = normalRelativeAngle(predictedAngle - _bakko.getGunHeadingRadians());
+            if (_isActive) {
+                _bakko.setTurnGunRightRadians(angle);
+            }
+            return new ShotInfo(predictedAngle, _isActive ? _bakko.setFireBullet(power) : null);
         } else {
             double enemyBearing = _bakko.getHeadingRadians() + e.getBearingRadians();
             _bakko.setTurnGunRightRadians(normalRelativeAngle(enemyBearing - _bakko.getGunHeadingRadians()));
-        }
-        if (_bakko.setFireBullet(power) != null) {
-            _waves.add(new Wave((Point2D.Double)_bakko.getPosition().clone(), power));
+            return null;
         }
     }
 
@@ -117,8 +115,10 @@ public class WarAxe implements Weapon {
 
     @Override
     public void onPaint(Graphics2D g) {
-        for (Wave wave : _waves) {
-            drawCircle(g, wave.getOrigin(), wave.getTraveledDistance());
-        }
+    }
+
+    @Override
+    public void setActive(boolean isActive) {
+        _isActive = isActive;
     }
 }

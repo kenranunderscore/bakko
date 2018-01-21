@@ -1,6 +1,7 @@
 package kenran.offense;
 
 import kenran.Bakko;
+import kenran.data.ShotInfo;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 
@@ -14,6 +15,7 @@ import static robocode.util.Utils.normalRelativeAngle;
 public class CircularPredictor implements Weapon {
     private final Bakko _bakko;
     private double _oldHeading = 0.0;
+    private boolean _isActive = false;
     private Point2D.Double _predictedPosition = new Point2D.Double();
 
     CircularPredictor(Bakko bakko) {
@@ -21,8 +23,8 @@ public class CircularPredictor implements Weapon {
     }
 
     @Override
-    public void onScannedRobot(ScannedRobotEvent e) {
-        double bulletPower = Math.min(2.5, _bakko.getEnergy());
+    public ShotInfo onScannedRobot(ScannedRobotEvent e) {
+        double power = Math.min(2.5, _bakko.getEnergy());
         double enemyBearing = _bakko.getHeadingRadians() + e.getBearingRadians();
         Point2D.Double predictedPosition = project(_bakko.getPosition(), enemyBearing, e.getDistance());
         double enemyHeading = e.getHeadingRadians();
@@ -32,7 +34,7 @@ public class CircularPredictor implements Weapon {
         double turnCount = 0.0;
         double battleFieldHeight = _bakko.getBattleFieldHeight();
         double battleFieldWidth = _bakko.getBattleFieldWidth();
-        while(++turnCount * Rules.getBulletSpeed(bulletPower) < _bakko.getPosition().distance(predictedPosition)){
+        while(++turnCount * Rules.getBulletSpeed(power) < _bakko.getPosition().distance(predictedPosition)){
             predictedPosition.x += Math.sin(enemyHeading) * enemyVelocity;
             predictedPosition.y += Math.cos(enemyHeading) * enemyVelocity;
             enemyHeading += enemyHeadingChange;
@@ -51,9 +53,11 @@ public class CircularPredictor implements Weapon {
         _predictedPosition.setLocation(predictedPosition);
         double theta = normalAbsoluteAngle(Math.atan2(
                 predictedPosition.x - _bakko.getX(), predictedPosition.y - _bakko.getY()));
-        _bakko.setTurnGunRightRadians(normalRelativeAngle(
-                theta - _bakko.getGunHeadingRadians()));
-        _bakko.setFire(bulletPower);
+        if (_isActive) {
+            _bakko.setTurnGunRightRadians(normalRelativeAngle(
+                    theta - _bakko.getGunHeadingRadians()));
+        }
+        return new ShotInfo(theta, _isActive ? _bakko.setFireBullet(power) : null);
     }
 
     @Override
@@ -64,5 +68,10 @@ public class CircularPredictor implements Weapon {
                 (int)_bakko.getPosition().getY(),
                 (int)_predictedPosition.getX(),
                 (int)_predictedPosition.getY());
+    }
+
+    @Override
+    public void setActive(boolean isActive) {
+        _isActive = isActive;
     }
 }
